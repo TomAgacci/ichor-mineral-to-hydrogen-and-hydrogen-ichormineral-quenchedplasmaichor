@@ -1,0 +1,135 @@
+# ============================================================
+# FULL NON-FICTION PIPELINE
+# SiO2 → CH4 + H2O → H2 → Plasma → Quench → Neutral H2
+# ============================================================
+
+import math
+
+# ------------------------------------------------------------
+# 0. HYDROGEN FROM CH4 + H2O (STEAM REFORMING + SHIFT)
+# ------------------------------------------------------------
+# Overall:
+#   CH4 + 2 H2O → CO2 + 4 H2
+
+def hydrogen_yield(n_CH4: float, n_H2O: float) -> float:
+    """
+    Real overall stoichiometry:
+      CH4 + 2 H2O → CO2 + 4 H2
+    """
+    limiting = min(n_CH4, n_H2O / 2.0)
+    return 4.0 * limiting
+
+
+# ------------------------------------------------------------
+# 1. SILICA (SiO2) SUPPORT — INERT MINERAL
+# ------------------------------------------------------------
+def prepare_silica(mass_SiO2_g: float) -> dict:
+    return {
+        "SiO2_mass_g": mass_SiO2_g,
+        "role": "inert_support",
+        "surface_condition": "cleaned_and_dried"
+    }
+
+
+# ------------------------------------------------------------
+# 2. PLASMA PHYSICS — IONIZATION FRACTION
+# ------------------------------------------------------------
+E_ION_EV = 13.6
+E_ION_J  = E_ION_EV * 1.602e-19
+K_B      = 1.381e-23
+R        = 0.08314  # L·bar / (mol·K)
+
+def hydrogen_ionization_fraction(T: float) -> float:
+    if T <= 0.0:
+        return 0.0
+    exponent = -E_ION_J / (K_B * T)
+    f_ion = math.exp(exponent)
+    return max(0.0, min(1.0, f_ion))
+
+def gas_pressure(n_total: float, T: float, V_L: float) -> float:
+    if V_L <= 0.0:
+        raise ValueError("Volume must be positive.")
+    return (n_total * R * T) / V_L
+
+
+# ------------------------------------------------------------
+# 3. QUENCHING — PLASMA → NEUTRAL H2
+# ------------------------------------------------------------
+def quench_plasma(n_H2_total: float, T_plasma: float, T_quench: float) -> dict:
+    """
+    Plasma stage: ionization at T_plasma.
+    Quench stage: recombination at T_quench.
+    """
+    # Plasma ionization fraction
+    f_ion_plasma = hydrogen_ionization_fraction(T_plasma)
+    n_H_ionized_plasma = n_H2_total * f_ion_plasma
+    n_H2_neutral_plasma = n_H2_total * (1.0 - f_ion_plasma)
+
+    # After quench, recombination (ionization fraction at lower T)
+    f_ion_quench = hydrogen_ionization_fraction(T_quench)
+    n_H_ionized_quench = n_H2_total * f_ion_quench
+    n_H2_neutral_quench = n_H2_total * (1.0 - f_ion_quench)
+
+    return {
+        "f_ion_plasma": f_ion_plasma,
+        "n_H_ionized_plasma_mol": n_H_ionized_plasma,
+        "n_H2_neutral_plasma_mol": n_H2_neutral_plasma,
+        "f_ion_quench": f_ion_quench,
+        "n_H_ionized_quench_mol": n_H_ionized_quench,
+        "n_H2_neutral_quench_mol": n_H2_neutral_quench
+    }
+
+
+# ------------------------------------------------------------
+# 4. FULL PIPELINE FUNCTION
+# ------------------------------------------------------------
+def silica_alkane_water_plasma_quench(
+    mass_SiO2_g: float,
+    n_CH4: float,
+    n_H2O: float,
+    V_L: float,
+    T_reform: float,
+    T_plasma: float,
+    T_quench: float
+) -> dict:
+    # SiO2 support
+    silica = prepare_silica(mass_SiO2_g)
+
+    # Hydrogen production
+    n_H2 = hydrogen_yield(n_CH4, n_H2O)
+
+    # Pressures
+    P_reform = gas_pressure(n_H2, T_reform, V_L)
+    P_plasma = gas_pressure(n_H2, T_plasma, V_L)
+
+    # Plasma → quench
+    quench_data = quench_plasma(n_H2, T_plasma, T_quench)
+
+    return {
+        "SiO2_support": silica,
+        "CH4_input_mol": n_CH4,
+        "H2O_input_mol": n_H2O,
+        "H2_total_mol": n_H2,
+        "pressure_reform_bar": P_reform,
+        "pressure_plasma_bar": P_plasma,
+        "T_reform_K": T_reform,
+        "T_plasma_K": T_plasma,
+        "T_quench_K": T_quench,
+        "plasma_quench_data": quench_data
+    }
+
+
+# ------------------------------------------------------------
+# 5. EXAMPLE RUN
+# ------------------------------------------------------------
+if __name__ == "__main__":
+    result = silica_alkane_water_plasma_quench(
+        mass_SiO2_g = 250.0,
+        n_CH4       = 1.5,
+        n_H2O       = 6.0,
+        V_L         = 10.0,
+        T_reform    = 1000.0,
+        T_plasma    = 12000.0,
+        T_quench    = 4000.0
+    )
+    print(result)
