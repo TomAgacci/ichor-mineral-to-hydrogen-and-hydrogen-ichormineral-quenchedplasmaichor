@@ -1,0 +1,36 @@
+# ============================================================
+# BALANCED NON-FICTION CHEMICAL EQUATIONS
+# LIQUID FUEL SYNTHESIS FROM H2 + CARBON SOURCES
+# ============================================================
+
+# 1. METHANOL (CH3OH) — LIQUID FUEL
+# ------------------------------------------------------------
+# CO2 + 3 H2 → CH3OH + H2O
+# Balanced, real industrial reaction (methanol synthesis).
+
+CO2 + 3H2 -> CH3OH + H2O
+
+
+# 2. METHANOL FROM CO + H2
+# ------------------------------------------------------------
+# CO + 2 H2 → CH3OH
+# Balanced, real catalytic hydrogenation of CO.
+
+CO + 2H2 -> CH3OH
+
+
+# 3. FISCHER–TROPSCH SYNTHETIC DIESEL (GENERAL FORM)
+# ------------------------------------------------------------
+# nCO + (2n + 1)H2 → CnH2n+2 + nH2O
+# Produces long-chain liquid hydrocarbons (diesel-like).
+
+# Example: C12H26 (dodecane, a real diesel-range liquid)
+12CO + 25H2 -> C12H26 + 12H2O
+
+
+# 4. AMMONIA (NH3) — LIQUID UNDER PRESSURE
+# ------------------------------------------------------------
+# N2 + 3 H2 → 2 NH3
+# Ammonia is a liquid fuel when stored under pressure or cooled.
+
+N2 + 3H2 -> 2NH3
