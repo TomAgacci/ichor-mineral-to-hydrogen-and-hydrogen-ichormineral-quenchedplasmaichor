@@ -1,0 +1,154 @@
+# ============================================================
+# PRESSURE‑CHEM HYDROGEN REACTOR BLUEPRINT
+# Quantized curvature • Deviation bands • Yield curves
+# ============================================================
+
+# ------------------------------------------------------------
+# 0. REAL CHEMISTRY BACKBONE (for reference)
+# ------------------------------------------------------------
+# Steam reforming:
+#   CH4  +  H2O  →  CO  +  3 H2
+# Water–gas shift:
+#   CO   +  H2O  →  CO2 +  H2
+# Overall:
+#   CH4  +  2 H2O  →  CO2  +  4 H2
+
+# ------------------------------------------------------------
+# 1. REACTOR GEOMETRY + QUANTIZED CURVATURE
+# ------------------------------------------------------------
+# Cylindrical reactor with three curvature bands:
+#   Band 1: Reforming zone (inner core)
+#   Band 2: Shift zone (mid shell)
+#   Band 3: Expansion zone (outer shell)
+
+kappa_0   = 1.0          # base curvature unit
+kappa     = [            # quantized curvature bands
+    1 * kappa_0,        # kappa_1: reforming band
+    2 * kappa_0,        # kappa_2: shift band
+    3 * kappa_0         # kappa_3: expansion band
+]
+
+# Mineral ichor (SiO2) packs the walls and internal baffles:
+mineral_ichor = "SiO2_packing"
+
+# ------------------------------------------------------------
+# 2. TEMPERATURE BANDS (DEVIATION ZONES)
+# ------------------------------------------------------------
+T_base   = 298.0         # base temperature (K)
+P_base   = 1.0           # base pressure (bar)
+k_heat   = 1.0
+k_press  = 1.0
+k_yield  = 4.0           # mol H2 per mol CH4 (overall reaction)
+
+# Temperature setpoints per band:
+T_band = [
+    1000.0,   # Band 1: reforming (hot)
+    700.0,    # Band 2: shift (medium)
+    500.0     # Band 3: expansion (cooler)
+]
+
+def delta_heat(T):
+    return k_heat * (T - T_base)
+
+def delta_press(P):
+    return k_press * (P - P_base)
+
+# ------------------------------------------------------------
+# 3. FIVE PREPARATIONS (PARAMETERIZED INPUTS)
+# ------------------------------------------------------------
+# Each preparation: (water_ichor_moles, alkane_ichor_moles, vessel_volume_L)
+
+prep = [
+    (  2.0,  0.5,  10.0 ),   # Prep 1
+    (  4.0,  1.0,  10.0 ),   # Prep 2
+    (  6.0,  1.5,  10.0 ),   # Prep 3
+    (  8.0,  2.0,  10.0 ),   # Prep 4
+    ( 10.0,  2.5,  10.0 )    # Prep 5
+]
+
+# ------------------------------------------------------------
+# 4. HYDROGEN YIELD + DEVIATION BANDS
+# ------------------------------------------------------------
+
+def hydrogen_yield(n_CH4, n_H2O):
+    # CH4 + 2 H2O → CO2 + 4 H2
+    limiting = min(n_CH4, n_H2O / 2.0)
+    return k_yield * limiting
+
+def run_reactor_prep(i):
+    (n_H2O, n_CH4, V) = prep[i]
+
+    # Band temperatures
+    T_reform = T_band[0]
+    T_shift  = T_band[1]
+    T_expand = T_band[2]
+
+    # Heat deviations per band
+    dH_reform = delta_heat(T_reform)
+    dH_shift  = delta_heat(T_shift)
+    dH_expand = delta_heat(T_expand)
+
+    # Hydrogen production (real chemistry)
+    n_H2 = hydrogen_yield(n_CH4, n_H2O)
+
+    # Ideal‑gas style pressure estimate (focus on H2)
+    R      = 0.08314
+    T_avg  = (T_reform + T_shift + T_expand) / 3.0
+    P_est  = (n_H2 * R * T_avg) / V
+
+    # Pressure deviation
+    dP = delta_press(P_est)
+
+    # Pressure‑Chem expansion metric (curvature‑weighted)
+    # Use outer band curvature as expansion weight
+    kappa_expansion = kappa[2]
+    expansion_factor = dP * n_H2 * kappa_expansion
+
+    return {
+        "prep_index":        i + 1,
+        "n_H2O_input":       n_H2O,
+        "n_CH4_input":       n_CH4,
+        "n_H2_output":       n_H2,
+        "T_reform":          T_reform,
+        "T_shift":           T_shift,
+        "T_expand":          T_expand,
+        "delta_heat_reform": dH_reform,
+        "delta_heat_shift":  dH_shift,
+        "delta_heat_expand": dH_expand,
+        "P_estimated_bar":   P_est,
+        "delta_pressure":    dP,
+        "expansion_factor":  expansion_factor
+    }
+
+# ------------------------------------------------------------
+# 5. YIELD CURVES FOR EACH PREPARATION
+# ------------------------------------------------------------
+
+results = []
+for i in range(5):
+    results.append(run_reactor_prep(i))
+
+# Build yield curves:
+#   Curve 1: H2 yield vs preparation index
+#   Curve 2: expansion_factor vs preparation index
+
+yield_curve_H2       = []
+yield_curve_expand   = []
+prep_indices         = []
+
+for res in results:
+    prep_indices.append(res["prep_index"])
+    yield_curve_H2.append(res["n_H2_output"])
+    yield_curve_expand.append(res["expansion_factor"])
+
+# At this point:
+#   prep_indices      → [1, 2, 3, 4, 5]
+#   yield_curve_H2    → H2 moles for each prep
+#   yield_curve_expand→ Pressure‑Chem expansion metric per prep
+#
+# These can be plotted as:
+#   H2 vs prep_index
+#   expansion_factor vs prep_index
+#
+# giving you full yield curves across the five preparations,
+# with quantized curvature and deviation bands baked into the reactor model.
