@@ -1,0 +1,64 @@
+# ============================================================
+# BALANCED NON-FICTION PLASMA → LIQUID FUEL EQUATIONS
+# Hydrogen plasma is quenched to neutral H2, then used normally.
+# ============================================================
+
+# ------------------------------------------------------------
+# 1. PLASMA HYDROGEN RECOMBINATION (REAL QUENCHING)
+# ------------------------------------------------------------
+# H+ + e- → H
+# 2H → H2
+# Balanced recombination after quench:
+
+2H+ + 2e- -> H2
+
+
+# ------------------------------------------------------------
+# 2. METHANOL (CH3OH) — LIQUID FUEL
+# ------------------------------------------------------------
+# CO2 + 3 H2 → CH3OH + H2O
+# Plasma hydrogen simply substitutes for H2 after quench:
+
+CO2 + 3H2 -> CH3OH + H2O
+
+
+# ------------------------------------------------------------
+# 3. METHANOL FROM CO + H2
+# ------------------------------------------------------------
+# CO + 2 H2 → CH3OH
+
+CO + 2H2 -> CH3OH
+
+
+# ------------------------------------------------------------
+# 4. FISCHER–TROPSCH SYNTHETIC DIESEL (GENERAL FORM)
+# ------------------------------------------------------------
+# nCO + (2n + 1)H2 → CnH2n+2 + nH2O
+# Produces long-chain liquid hydrocarbons.
+
+# Example: C12H26 (dodecane, diesel-range liquid)
+12CO + 25H2 -> C12H26 + 12H2O
+
+
+# ------------------------------------------------------------
+# 5. AMMONIA (NH3) — LIQUID UNDER PRESSURE
+# ------------------------------------------------------------
+# N2 + 3 H2 → 2 NH3
+
+N2 + 3H2 -> 2NH3
+
+
+# ------------------------------------------------------------
+# 6. FORMIC ACID (HCOOH) — LIQUID FUEL / HYDROGEN CARRIER
+# ------------------------------------------------------------
+# CO2 + H2 → HCOOH
+
+CO2 + H2 -> HCOOH
+
+
+# ------------------------------------------------------------
+# 7. DIMETHYL ETHER (DME) — CLEAN-BURNING LIQUID FUEL
+# ------------------------------------------------------------
+# 2 CH3OH → CH3OCH3 + H2O
+
+2CH3OH -> CH3OCH3 + H2O
