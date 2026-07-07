@@ -1,0 +1,30 @@
+# PLASMA‑ICHOR → HYDROGEN‑ICHOR FLUID (Quenching Procedure)
+
+# 1. Input: active plasma ichor
+I_plasma = volume_of_plasma_ichor
+
+# 2. Move plasma ichor into a controlled quench chamber
+# Chamber curvature must be low enough to destabilize plasma, but not zero.
+kappa_target = 1   # low-curvature collapse zone
+if kappa_target >= 3:
+    raise Exception("Curvature too high: plasma will remain stable")
+
+# 3. Reduce deviation-charge by lowering temperature
+T = current_temperature
+T_quench = T_plasma - delta_T_quench
+delta_heat = k_heat * (T_quench - T_base)
+
+if delta_heat >= delta_plasma:
+    raise Exception("Heat still too high: plasma cannot collapse")
+
+# 4. Allow phase-collapse into hydrogen-ichor
+if delta_heat < delta_split:
+    # Collapse overshot: ichor becomes inert ash
+    raise Exception("Deviation too low: plasma collapsed into D_ash instead of H2_ichor")
+
+# Correct collapse band:
+# delta_split <= delta_heat < delta_plasma
+H2_ichor_fluid = collapse_factor * I_plasma
+
+# 5. Output: stable hydrogen-ichor fluid
+return H2_ichor_fluid
