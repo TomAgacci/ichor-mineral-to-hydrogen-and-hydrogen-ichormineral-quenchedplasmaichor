@@ -1,0 +1,128 @@
+# ============================================================
+# FULL NON-FICTION PIPELINE WITH TEMPERATURES
+# SiO2 → CH4 + H2O → H2 → Plasma → Quench → Neutral H2
+# Flame-powered (alkane combustion), no electricity
+# ============================================================
+
+# ------------------------------------------------------------
+# TEMPERATURES USED IN REAL INDUSTRIAL CHEMISTRY
+# ------------------------------------------------------------
+T_SILICA_DRY      = 150      # °C   drying SiO2 mineral
+T_STEAM_GEN       = 400      # °C   water → steam
+T_REFORM_MIN      = 800      # °C   lower bound steam reforming
+T_REFORM_MAX      = 1000     # °C   upper bound steam reforming
+T_PLASMA          = 12000    # K    hydrogen plasma formation
+T_QUENCH          = 3500     # K    recombination threshold
+
+# ------------------------------------------------------------
+# 1. SILICON DIOXIDE (SiO2) PREPARATION
+# ------------------------------------------------------------
+# SiO2 is inert. It does NOT produce hydrogen.
+# It only stabilizes heat and supports catalysts.
+
+def prepare_silica(mass_SiO2_g):
+    return {
+        "mass_g": mass_SiO2_g,
+        "dried_at_C": T_SILICA_DRY,
+        "role": "inert_support"
+    }
+
+# ------------------------------------------------------------
+# 2. ALKANE FLAME HEAT SOURCE (NO ELECTRICITY)
+# ------------------------------------------------------------
+# CH4 combustion:
+#   CH4 + 2 O2 → CO2 + 2 H2O     ΔH ≈ -802 kJ/mol (real value)
+
+DELTA_H_COMBUST_CH4 = -802.0  # kJ/mol
+
+def flame_heat(n_CH4_flame):
+    """
+    Heat from burning alkane (CH4) in a flame.
+    """
+    return abs(DELTA_H_COMBUST_CH4) * n_CH4_flame
+
+# ------------------------------------------------------------
+# 3. REAL HYDROGEN PRODUCTION FROM CH4 + H2O
+# ------------------------------------------------------------
+# Overall:
+#   CH4 + 2 H2O → CO2 + 4 H2
+
+def hydrogen_yield(n_CH4, n_H2O):
+    limiting = min(n_CH4, n_H2O / 2.0)
+    return 4.0 * limiting
+
+# ------------------------------------------------------------
+# 4. PLASMA IONIZATION FRACTION (REAL PHYSICS)
+# ------------------------------------------------------------
+import math
+
+E_ION_EV = 13.6
+E_ION_J  = E_ION_EV * 1.602e-19
+K_B      = 1.381e-23
+
+def ionization_fraction(T):
+    """
+    Real Boltzmann factor approximation:
+    f_ion = exp( -E_ion / (k_B * T) )
+    """
+    if T <= 0:
+        return 0.0
+    exponent = -E_ION_J / (K_B * T)
+    return max(0.0, min(1.0, math.exp(exponent)))
+
+# ------------------------------------------------------------
+# 5. QUENCHING (REAL RECOMBINATION)
+# ------------------------------------------------------------
+def quench_plasma(n_H2_total, T_plasma, T_quench):
+    f_ion_plasma = ionization_fraction(T_plasma)
+    f_ion_quench = ionization_fraction(T_quench)
+
+    return {
+        "ionized_plasma_mol": n_H2_total * f_ion_plasma,
+        "neutral_plasma_mol": n_H2_total * (1 - f_ion_plasma),
+        "ionized_after_quench_mol": n_H2_total * f_ion_quench,
+        "neutral_after_quench_mol": n_H2_total * (1 - f_ion_quench)
+    }
+
+# ------------------------------------------------------------
+# 6. FULL PIPELINE WITH ALKANE FLAME HEATING
+# ------------------------------------------------------------
+def full_pipeline(
+    mass_SiO2_g,
+    n_CH4_flame,
+    n_CH4_reform,
+    n_H2O
+):
+    silica = prepare_silica(mass_SiO2_g)
+
+    # Flame heat available
+    Q_flame = flame_heat(n_CH4_flame)
+
+    # Hydrogen production
+    n_H2 = hydrogen_yield(n_CH4_reform, n_H2O)
+
+    # Plasma → Quench
+    quench_data = quench_plasma(n_H2, T_PLASMA, T_QUENCH)
+
+    return {
+        "SiO2_support": silica,
+        "flame_heat_kJ": Q_flame,
+        "CH4_reformed_mol": n_CH4_reform,
+        "H2O_mol": n_H2O,
+        "H2_total_mol": n_H2,
+        "plasma_temperature_K": T_PLASMA,
+        "quench_temperature_K": T_QUENCH,
+        "plasma_quench_results": quench_data
+    }
+
+# ------------------------------------------------------------
+# 7. EXAMPLE RUN
+# ------------------------------------------------------------
+if __name__ == "__main__":
+    result = full_pipeline(
+        mass_SiO2_g = 250.0,
+        n_CH4_flame = 2.0,   # CH4 burned for flame heat
+        n_CH4_reform = 1.5,  # CH4 used for hydrogen production
+        n_H2O = 6.0          # water for steam reforming
+    )
+    print(result)
