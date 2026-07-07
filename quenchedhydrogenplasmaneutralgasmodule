@@ -1,0 +1,131 @@
+# ============================================================
+# NON-FICTION HYDROGEN PLASMA → QUENCH → NEUTRAL GAS MODULE
+# ============================================================
+
+# ------------------------------------------------------------
+# 0. HYDROGEN PRODUCTION (from any real source)
+# ------------------------------------------------------------
+# Here we assume you already have n_H2 moles of neutral hydrogen gas
+# from steam reforming, electrolysis, or any other real process.
+
+def make_hydrogen_feed(n_H2):
+    return {
+        "phase": "gas",
+        "H2_mol": n_H2
+    }
+
+
+# ------------------------------------------------------------
+# 1. PLASMA GENERATION (THERMAL IONIZATION, NON-FICTION)
+# ------------------------------------------------------------
+# Hydrogen becomes plasma when heated to very high temperatures
+# (order of 10,000 K or more).
+
+T_PLASMA_THRESHOLD = 10000.0  # K (order-of-magnitude ionization threshold)
+
+def make_plasma(feed, T_plasma):
+    """
+    feed: dict with 'phase' and 'H2_mol'
+    T_plasma: plasma chamber temperature (K)
+    """
+    if T_plasma >= T_PLASMA_THRESHOLD:
+        # Ionize hydrogen: H2 → 2 H → H+ + e-
+        return {
+            "phase":      "plasma",
+            "H_plus_mol": feed["H2_mol"],   # symbolic count of ionized units
+            "e_minus_mol": feed["H2_mol"],
+            "T":          T_plasma
+        }
+    else:
+        # Not hot enough: stays neutral gas
+        return {
+            "phase":  "gas",
+            "H2_mol": feed["H2_mol"],
+            "T":      T_plasma
+        }
+
+
+# ------------------------------------------------------------
+# 2. QUENCHING (REAL RECOMBINATION, NON-FICTION)
+# ------------------------------------------------------------
+# Rapid cooling of plasma causes ions and electrons to recombine
+# into neutral hydrogen atoms/molecules.
+
+T_QUENCH_RECOMBINE = 5000.0  # K (below this, recombination dominates)
+
+def quench_plasma(packet, T_quench):
+    """
+    packet: output of make_plasma(...)
+    T_quench: temperature after quench (K)
+    """
+    if packet["phase"] == "plasma" and T_quench < T_QUENCH_RECOMBINE:
+        # Recombine H+ and e- into neutral H2
+        H2_mol = packet["H_plus_mol"]  # same amount, now neutral
+        return {
+            "phase":  "gas",
+            "H2_mol": H2_mol,
+            "T":      T_quench
+        }
+    else:
+        # Either still too hot or never plasma: no recombination step
+        if packet["phase"] == "gas":
+            return {
+                "phase":  "gas",
+                "H2_mol": packet["H2_mol"],
+                "T":      T_quench
+            }
+        else:
+            # plasma but not sufficiently quenched
+            return {
+                "phase":      "plasma",
+                "H_plus_mol": packet["H_plus_mol"],
+                "e_minus_mol": packet["e_minus_mol"],
+                "T":          T_quench
+            }
+
+
+# ------------------------------------------------------------
+# 3. FULL NON-FICTION CONVERSION PIPELINE
+# ------------------------------------------------------------
+def plasma_quench_conversion(n_H2_feed, T_plasma, T_quench):
+    """
+    n_H2_feed: moles of neutral hydrogen entering plasma chamber
+    T_plasma: plasma chamber temperature (K)
+    T_quench: temperature after quench (K)
+    """
+    # Step 1: feed neutral hydrogen
+    feed = make_hydrogen_feed(n_H2_feed)
+
+    # Step 2: make plasma (if hot enough)
+    plasma_packet = make_plasma(feed, T_plasma)
+
+    # Step 3: quench plasma (recombine if cool enough)
+    quenched = quench_plasma(plasma_packet, T_quench)
+
+    return {
+        "H2_in_mol":        n_H2_feed,
+        "T_plasma":         T_plasma,
+        "T_quench":         T_quench,
+        "phase_after_plasma": plasma_packet["phase"],
+        "phase_after_quench": quenched["phase"],
+        "H2_out_mol":       quenched.get("H2_mol", 0.0),
+        "packet_after_plasma": plasma_packet,
+        "packet_after_quench": quenched
+    }
+
+
+# ------------------------------------------------------------
+# 4. EXAMPLE RUN (NON-FICTION)
+# ------------------------------------------------------------
+if __name__ == "__main__":
+    result = plasma_quench_conversion(
+        n_H2_feed = 4.0,     # 4 mol H2 from any real source
+        T_plasma  = 12000.0, # hot enough to ionize
+        T_quench  = 3000.0   # cool enough to recombine
+    )
+
+    # result now contains:
+    #   - H2_in_mol: moles of neutral hydrogen fed
+    #   - phase_after_plasma: "plasma" or "gas"
+    #   - phase_after_quench: "gas" (if recombined) or "plasma"
+    #   - H2_out_mol: moles of neutral hydrogen after quench
