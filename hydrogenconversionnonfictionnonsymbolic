@@ -1,0 +1,60 @@
+# ============================================================
+# NON-FICTION HYDROGEN CONVERSION FROM CH4 + H2O
+# Steam reforming + water–gas shift → H2
+# ============================================================
+
+import math
+
+# Overall real reaction:
+#   CH4 + 2 H2O → CO2 + 4 H2
+
+def hydrogen_yield(n_CH4: float, n_H2O: float) -> float:
+    """
+    Compute moles of H2 produced from CH4 and H2O
+    via the overall steam reforming + water–gas shift reaction.
+    Stoichiometry: CH4 + 2 H2O → CO2 + 4 H2
+    """
+    if n_CH4 < 0 or n_H2O < 0:
+        raise ValueError("Input moles must be non-negative.")
+
+    # Limiting reagent: need 2 mol H2O per 1 mol CH4
+    limiting_CH4 = min(n_CH4, n_H2O / 2.0)
+
+    # 4 mol H2 per mol CH4 consumed
+    n_H2 = 4.0 * limiting_CH4
+    return n_H2
+
+
+# Optional: simple pressure estimate for the produced hydrogen (ideal gas)
+R = 0.08314  # L·bar / (mol·K)
+
+def hydrogen_pressure(n_H2: float, T_K: float, V_L: float) -> float:
+    """
+    Ideal gas pressure of H2 in bar.
+    P = n * R * T / V
+    """
+    if V_L <= 0.0:
+        raise ValueError("Volume must be positive.")
+    if n_H2 < 0 or T_K <= 0:
+        raise ValueError("Invalid H2 amount or temperature.")
+
+    return (n_H2 * R * T_K) / V_L
+
+
+# Example usage
+if __name__ == "__main__":
+    # Feed: 1.5 mol CH4, 6.0 mol H2O
+    n_CH4_feed = 1.5
+    n_H2O_feed = 6.0
+
+    # Hydrogen conversion
+    n_H2_prod = hydrogen_yield(n_CH4_feed, n_H2O_feed)
+
+    # Suppose reactor volume = 10 L, temperature = 1000 K
+    V_reactor_L = 10.0
+    T_reactor_K = 1000.0
+
+    P_H2_bar = hydrogen_pressure(n_H2_prod, T_reactor_K, V_reactor_L)
+
+    print("H2 produced (mol):", n_H2_prod)
+    print("Estimated H2 pressure (bar):", P_H2_bar)
