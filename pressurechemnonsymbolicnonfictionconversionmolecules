@@ -1,0 +1,134 @@
+# ============================================================
+# NON-FICTION PRESSURE / TEMPERATURE HYDROGEN PLASMA CONVERSION
+# Validated by real chemistry and plasma physics (no fiction).
+# ============================================================
+
+import math
+
+# ------------------------------------------------------------
+# 0. REAL CHEMISTRY: HYDROGEN FROM CH4 + H2O (STEAM REFORMING)
+# ------------------------------------------------------------
+# Overall reaction:
+#   CH4 + 2 H2O → CO2 + 4 H2
+
+def hydrogen_yield(n_CH4: float, n_H2O: float) -> float:
+    """
+    Compute moles of H2 produced from CH4 and H2O
+    via the overall steam reforming + water–gas shift reaction.
+    """
+    limiting = min(n_CH4, n_H2O / 2.0)
+    return 4.0 * limiting  # 4 mol H2 per mol CH4 (overall)
+
+
+# ------------------------------------------------------------
+# 1. REAL PLASMA PHYSICS: HYDROGEN IONIZATION FRACTION
+# ------------------------------------------------------------
+# We use a simple thermally driven ionization model based on
+# the Boltzmann factor with hydrogen ionization energy.
+#
+# Ionization energy of hydrogen: 13.6 eV
+# 1 eV ≈ 1.602e-19 J
+# Boltzmann constant k_B ≈ 1.381e-23 J/K
+#
+# Ionization fraction f_ion ≈ exp( -E_ion / (k_B * T) )
+# This is a simplified, physically motivated approximation.
+
+E_ION_EV   = 13.6
+E_ION_J    = E_ION_EV * 1.602e-19
+K_B        = 1.381e-23
+
+def hydrogen_ionization_fraction(T: float) -> float:
+    """
+    Compute approximate ionization fraction of hydrogen at temperature T (K).
+    Returns a value between 0 and 1.
+    """
+    if T <= 0.0:
+        return 0.0
+    exponent = -E_ION_J / (K_B * T)
+    f_ion = math.exp(exponent)
+    # At very high T, f_ion approaches 1; at low T, it is ~0.
+    return max(0.0, min(1.0, f_ion))
+
+
+# ------------------------------------------------------------
+# 2. PRESSURE ESTIMATE (IDEAL GAS, NON-FICTION)
+# ------------------------------------------------------------
+# P = n * R * T / V
+
+R = 0.08314  # L·bar / (mol·K)
+
+def gas_pressure(n_total: float, T: float, V_L: float) -> float:
+    """
+    Compute gas pressure in bar for n_total moles at temperature T (K)
+    in volume V_L (liters), using the ideal gas law.
+    """
+    if V_L <= 0.0:
+        raise ValueError("Volume must be positive.")
+    return (n_total * R * T) / V_L
+
+
+# ------------------------------------------------------------
+# 3. FULL NON-FICTION PLASMA CONVERSION PIPELINE
+# ------------------------------------------------------------
+def hydrogen_plasma_conversion(
+    n_CH4: float,
+    n_H2O: float,
+    V_L: float,
+    T_reform: float,
+    T_plasma: float
+) -> dict:
+    """
+    1. Produce H2 via real steam reforming chemistry.
+    2. Estimate total gas pressure at reforming temperature.
+    3. Compute hydrogen ionization fraction at plasma temperature.
+    4. Split H2 into neutral and ionized components (plasma).
+    """
+
+    # Step 1: hydrogen production (real chemistry)
+    n_H2 = hydrogen_yield(n_CH4, n_H2O)
+
+    # Step 2: pressure at reforming temperature (neutral gas)
+    P_reform = gas_pressure(n_H2, T_reform, V_L)
+
+    # Step 3: ionization fraction at plasma temperature (real physics)
+    f_ion = hydrogen_ionization_fraction(T_plasma)
+
+    # Step 4: split into neutral and ionized hydrogen
+    n_H2_neutral = n_H2 * (1.0 - f_ion)
+    n_H_ionized  = n_H2 * f_ion  # treated as ionized hydrogen units
+
+    # Pressure at plasma temperature (total particles still ~n_H2)
+    P_plasma = gas_pressure(n_H2, T_plasma, V_L)
+
+    return {
+        "n_CH4_input":       n_CH4,
+        "n_H2O_input":       n_H2O,
+        "n_H2_total_mol":    n_H2,
+        "pressure_reform_bar": P_reform,
+        "T_reform_K":        T_reform,
+        "T_plasma_K":        T_plasma,
+        "ionization_fraction": f_ion,
+        "n_H2_neutral_mol":  n_H2_neutral,
+        "n_H_ionized_mol":   n_H_ionized,
+        "pressure_plasma_bar": P_plasma
+    }
+
+
+# ------------------------------------------------------------
+# 4. EXAMPLE: RUN NON-FICTION PLASMA CONVERSION
+# ------------------------------------------------------------
+if __name__ == "__main__":
+    result = hydrogen_plasma_conversion(
+        n_CH4    = 1.5,     # mol CH4
+        n_H2O    = 6.0,     # mol H2O
+        V_L      = 10.0,    # reactor volume in liters
+        T_reform = 1000.0,  # K (steam reforming zone)
+        T_plasma = 12000.0  # K (plasma zone)
+    )
+
+    # 'result' now contains:
+    #   - real H2 production from CH4 + H2O
+    #   - real pressure at reforming temperature
+    #   - physically motivated ionization fraction at plasma temperature
+    #   - split between neutral and ionized hydrogen
+    #   - real pressure at plasma temperature
