@@ -1,0 +1,218 @@
+# ============================================================
+# FULL PRESSURE‑CHEM HYDROGEN REACTOR SYSTEM
+# Reactor schematic • Symbolic overlay • Yield curves • Multi‑phase engine
+# ============================================================
+
+# ------------------------------------------------------------
+# 0. REAL CHEMISTRY BACKBONE
+# ------------------------------------------------------------
+# Steam reforming:
+#   CH4 + H2O → CO + 3 H2
+# Water–gas shift:
+#   CO + H2O → CO2 + H2
+# Overall:
+#   CH4 + 2 H2O → CO2 + 4 H2
+
+k_yield = 4.0  # mol H2 per mol CH4 (overall)
+
+def hydrogen_yield(n_CH4, n_H2O):
+    limiting = min(n_CH4, n_H2O / 2.0)
+    return k_yield * limiting
+
+
+# ------------------------------------------------------------
+# 1. REACTOR SCHEMATIC (GEOMETRY + ZONES)
+# ------------------------------------------------------------
+# Cylindrical reactor with three zones:
+#   Zone 1: Reforming (hot core)
+#   Zone 2: Shift (mid shell)
+#   Zone 3: Expansion (outer shell)
+
+class ReactorGeometry:
+    def __init__(self):
+        self.kappa_0 = 1.0
+        self.kappa   = [
+            1 * self.kappa_0,  # Zone 1 curvature
+            2 * self.kappa_0,  # Zone 2 curvature
+            3 * self.kappa_0   # Zone 3 curvature
+        ]
+        self.T_band = [
+            1000.0,  # Zone 1: reforming
+            700.0,   # Zone 2: shift
+            500.0    # Zone 3: expansion
+        ]
+        self.mineral_ichor = "SiO2_packing"  # inert lining
+
+
+# ------------------------------------------------------------
+# 2. PRESSURE‑CHEM SYMBOLIC OVERLAY
+# ------------------------------------------------------------
+T_base  = 298.0
+P_base  = 1.0
+k_heat  = 1.0
+k_press = 1.0
+
+def delta_heat(T):
+    return k_heat * (T - T_base)
+
+def delta_press(P):
+    return k_press * (P - P_base)
+
+
+# ------------------------------------------------------------
+# 3. FIVE PREPARATIONS (PARAMETERIZED INPUTS)
+# ------------------------------------------------------------
+# Each: (water_ichor_moles, alkane_ichor_moles, vessel_volume_L)
+
+prep = [
+    (  2.0,  0.5,  10.0 ),   # Prep 1
+    (  4.0,  1.0,  10.0 ),   # Prep 2
+    (  6.0,  1.5,  10.0 ),   # Prep 3
+    (  8.0,  2.0,  10.0 ),   # Prep 4
+    ( 10.0,  2.5,  10.0 )    # Prep 5
+]
+
+
+# ------------------------------------------------------------
+# 4. MULTI‑PHASE HYDROGEN‑ICHOR ENGINE
+#    (Gas → Plasma → Quench → Fluid)
+# ------------------------------------------------------------
+
+T_plasma_threshold = 10000.0  # K
+
+def make_plasma(n_H2, T):
+    if T >= T_plasma_threshold:
+        return {"phase": "plasma", "H_plus": n_H2, "electrons": n_H2}
+    else:
+        return {"phase": "gas", "H2": n_H2}
+
+def quench_plasma(packet, T_quench):
+    if packet["phase"] == "plasma" and T_quench < 5000.0:
+        return {"phase": "gas", "H2": packet["H_plus"]}
+    else:
+        return packet
+
+def dissolve_hydrogen(H2_mol, P_bar, V_L):
+    k_Henry = 0.02
+    dissolved = k_Henry * P_bar * H2_mol / V_L
+    return {
+        "phase": "fluid",
+        "H2_dissolved_mol": dissolved,
+        "state": "pressurized hydrogen‑rich fluid"
+    }
+
+
+# ------------------------------------------------------------
+# 5. SINGLE‑PREP REACTOR RUN (SCHEMATIC + OVERLAY + ENGINE)
+# ------------------------------------------------------------
+def run_reactor_prep(index, geom: ReactorGeometry, T_plasma, T_quench):
+    (n_H2O, n_CH4, V_L) = prep[index]
+
+    # Zone temperatures
+    T_reform = geom.T_band[0]
+    T_shift  = geom.T_band[1]
+    T_expand = geom.T_band[2]
+
+    # Heat deviations
+    dH_reform = delta_heat(T_reform)
+    dH_shift  = delta_heat(T_shift)
+    dH_expand = delta_heat(T_expand)
+
+    # Hydrogen production
+    n_H2 = hydrogen_yield(n_CH4, n_H2O)
+
+    # Multi‑phase engine: gas → plasma → quench → fluid
+    plasma_packet = make_plasma(n_H2, T_plasma)
+    quenched      = quench_plasma(plasma_packet, T_quench)
+
+    H2_gas = quenched.get("H2", 0.0)
+
+    # Pressure estimate (ideal gas)
+    R     = 0.08314
+    T_avg = (T_reform + T_shift + T_expand) / 3.0
+    P_est = (H2_gas * R * T_avg) / V_L
+
+    # Pressure deviation + curvature‑weighted expansion
+    dP              = delta_press(P_est)
+    kappa_expansion = geom.kappa[2]
+    expansion_factor = dP * H2_gas * kappa_expansion
+
+    # Fluid phase (dissolved hydrogen)
+    fluid = dissolve_hydrogen(H2_gas, P_est, V_L)
+
+    return {
+        "prep_index":        index + 1,
+        "n_H2O_input":       n_H2O,
+        "n_CH4_input":       n_CH4,
+        "n_H2_output":       n_H2,
+        "phase_after_plasma": plasma_packet["phase"],
+        "phase_after_quench": quenched["phase"],
+        "T_reform":          T_reform,
+        "T_shift":           T_shift,
+        "T_expand":          T_expand,
+        "delta_heat_reform": dH_reform,
+        "delta_heat_shift":  dH_shift,
+        "delta_heat_expand": dH_expand,
+        "pressure_bar":      P_est,
+        "delta_pressure":    dP,
+        "expansion_factor":  expansion_factor,
+        "fluid_phase":       fluid["phase"],
+        "H2_dissolved_mol":  fluid["H2_dissolved_mol"],
+        "fluid_state":       fluid["state"]
+    }
+
+
+# ------------------------------------------------------------
+# 6. YIELD CURVE GRAPH GENERATOR (DATA SIDE)
+# ------------------------------------------------------------
+def generate_yield_curves(T_plasma, T_quench):
+    geom = ReactorGeometry()
+    results = []
+    for i in range(5):
+        res = run_reactor_prep(i, geom, T_plasma, T_quench)
+        results.append(res)
+
+    prep_indices       = []
+    curve_H2_yield     = []
+    curve_expansion    = []
+    curve_dissolved_H2 = []
+
+    for res in results:
+        prep_indices.append(res["prep_index"])
+        curve_H2_yield.append(res["n_H2_output"])
+        curve_expansion.append(res["expansion_factor"])
+        curve_dissolved_H2.append(res["H2_dissolved_mol"])
+
+    return {
+        "prep_indices":       prep_indices,
+        "curve_H2_yield":     curve_H2_yield,
+        "curve_expansion":    curve_expansion,
+        "curve_dissolved_H2": curve_dissolved_H2,
+        "raw_results":        results
+    }
+
+
+# ------------------------------------------------------------
+# 7. EXAMPLE: RUN FULL SYSTEM
+# ------------------------------------------------------------
+if __name__ == "__main__":
+    T_plasma = 12000.0  # K (plasma stage)
+    T_quench = 800.0    # K (quench stage)
+
+    curves = generate_yield_curves(T_plasma, T_quench)
+
+    # curves["prep_indices"]       → [1, 2, 3, 4, 5]
+    # curves["curve_H2_yield"]     → H2 moles per prep
+    # curves["curve_expansion"]    → Pressure‑Chem expansion per prep
+    # curves["curve_dissolved_H2"] → dissolved H2 per prep
+    #
+    # These arrays are ready to plot as yield curves:
+    #   H2_yield vs prep_index
+    #   expansion_factor vs prep_index
+    #   dissolved_H2 vs prep_index
+    #
+    # giving you:
+    #   • a full reactor schematic (geometry + zones)
+    #   • a Pressure‑Chem symbolic overlay (deviations, curvature)
+    #   • a yield curve generator
+    #   • a multi‑phase hydrogen‑ichor engine (gas/plasma/quench/fluid)
