@@ -1,0 +1,339 @@
+Define reactor geometry and quantized curvature
+Setup
+Establish the physical vessel and the quantized curvature bands that structure your Pressure‑Chem reactor.
+
+Let the reactor be a right cylinder of volume V with three curvature bands:
+
+𝜅
+1
+=
+1
+⋅
+𝜅
+0
+ (low curvature, expansion zone)
+
+𝜅
+2
+=
+2
+⋅
+𝜅
+0
+ (medium curvature, shift zone)
+
+𝜅
+3
+=
+3
+⋅
+𝜅
+0
+ (high curvature, reforming zone)
+Assign axial segments of the vessel to each 
+𝜅
+𝑛
+ band.
+
+Choose a cylindrical pressure vessel rated for high T and P.
+
+Partition the length into three zones: reforming, shift, expansion.
+
+Assign quantized curvature 
+𝜅
+1
+,
+𝜅
+2
+,
+𝜅
+3
+ to these zones as your Pressure‑Chem bands.
+
+Treat curvature bands as control parameters for temperature and residence time.
+
+2
+Pack mineral ichor and define thermal zones
+Mineral Backbone
+Load SiO2 as inert packing and set temperature profiles for each curvature band.
+
+Thermal targets:
+
+Reforming zone (
+𝜅
+3
+): 
+𝑇
+reform
+≈
+1000
+ 
+K
+
+Shift zone (
+𝜅
+2
+): 
+𝑇
+shift
+≈
+700
+ 
+K
+
+Expansion zone (
+𝜅
+1
+): 
+𝑇
+exp
+≈
+500
+ 
+K
+ or lower for cooling.
+
+Fill internal trays or packed sections with SiO2 (mineral ichor) as inert support.
+
+Ensure good gas flow through the packing to avoid channeling.
+
+Set burners or external heaters to create three temperature plateaus: reforming, shift, expansion.
+
+Link each temperature plateau to its curvature band 
+𝜅
+𝑛
+ in your Pressure‑Chem notation.
+
+3
+Inject water ichor and alkane preparations
+Five Preparations
+Feed the reactor with five parameterized sets of water and alkane to study hydrogen yield and expansion.
+
+Define five preparations:
+
+Prep
+𝑖
+=
+(
+𝑛
+H2O
+,
+𝑖
+,
+𝑛
+CH4
+,
+𝑖
+,
+𝑉
+)
+
+Example set:
+
+Prep 1: (2.0 mol H2O, 0.5 mol CH4, 10 L)
+
+Prep 2: (4.0 mol H2O, 1.0 mol CH4, 10 L)
+
+Prep 3: (6.0 mol H2O, 1.5 mol CH4, 10 L)
+
+Prep 4: (8.0 mol H2O, 2.0 mol CH4, 10 L)
+
+Prep 5: (10.0 mol H2O, 2.5 mol CH4, 10 L)
+
+Treat water ichor as liquid water converted to steam in the reforming zone.
+
+Treat alkane ichor as methane (CH4) or similar light alkane.
+
+Define five distinct feed sets (Prep 1–5) with increasing water and alkane loading.
+
+Inject each preparation into the reforming zone at controlled flow rates.
+
+4
+Run hydrogen conversion and compute deviation bands
+Hydrogen Core
+Apply real steam‑reforming chemistry and overlay Pressure‑Chem heat and pressure deviations.
+
+Real overall reaction:
+
+C
+H
+4
++
+2
+H
+2
+O
+→
+C
+O
+2
++
+4
+H
+2
+
+Hydrogen yield function:
+
+𝑛
+H2
+=
+4
+ 
+min
+⁡
+(
+𝑛
+CH4
+,
+𝑛
+H2O
+/
+2
+)
+
+Heat deviation:
+
+Δ
+𝐻
+=
+𝑘
+heat
+(
+𝑇
+−
+𝑇
+base
+)
+
+Pressure estimate (ideal overlay):
+
+𝑃
+≈
+𝑛
+H2
+𝑅
+𝑇
+avg
+𝑉
+
+Pressure deviation:
+
+Δ
+𝑃
+=
+𝑘
+press
+(
+𝑃
+−
+𝑃
+base
+)
+
+Expansion metric:
+
+𝐸
+=
+Δ
+𝑃
+⋅
+𝑛
+H2
+
+For each preparation, compute the limiting reagent between CH4 and H2O.
+
+Use the overall reaction to calculate moles of H2 produced.
+
+Estimate average temperature 
+𝑇
+avg
+ from reforming and shift zones.
+
+Compute heat deviation 
+Δ
+𝐻
+ and pressure deviation 
+Δ
+𝑃
+ for your Pressure‑Chem bands.
+
+Define an expansion metric 
+𝐸
+ that ties deviation to hydrogen quantity.
+
+5
+Generate yield curves and banded reactor behavior
+Yield Curves
+Plot hydrogen yield and expansion versus preparation index and curvature band to get a full reactor profile.
+
+For each preparation 
+𝑖
+:
+
+Compute 
+𝑛
+H2
+,
+𝑖
+, 
+Δ
+𝐻
+𝑖
+, 
+Δ
+𝑃
+𝑖
+, and 
+𝐸
+𝑖
+.
+Yield curves:
+
+Plot 
+𝑛
+H2
+,
+𝑖
+ vs. preparation index 
+𝑖
+.
+
+Plot 
+𝐸
+𝑖
+ vs. preparation index 
+𝑖
+.
+Band behavior:
+
+Optionally, plot 
+Δ
+𝐻
+𝑖
+ and 
+Δ
+𝑃
+𝑖
+ per curvature band 
+𝜅
+1
+,
+𝜅
+2
+,
+𝜅
+3
+.
+
+Use your five preparations as x‑axis points (Prep 1–5).
+
+Plot hydrogen yield to see how loading affects production.
+
+Plot expansion metric to visualize Pressure‑Chem deviation behavior.
+
+Associate each data set with its curvature band to see how 
+𝜅
+𝑛
+ shapes reactor performance.
+
+Use these curves to tune feed rates, temperatures, and curvature assignments for desired hydrogen output and expansion.
