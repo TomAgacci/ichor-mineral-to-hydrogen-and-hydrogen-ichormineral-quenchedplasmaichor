@@ -1,0 +1,84 @@
+# ============================================================
+# NON-FICTION HYDROGEN MODULE (PRESSURE-CHEM OVERLAY)
+# ============================================================
+
+# REAL CHEMISTRY BACKBONE
+# CH4 + H2O  →  CO + 3 H2
+# CO + H2O   →  CO2 + H2
+# Overall: CH4 + 2 H2O → CO2 + 4 H2
+
+# ------------------------------------------------------------
+# PRESSURE-CHEM PARAMETERS
+# ------------------------------------------------------------
+k_heat   = 1.0
+k_press  = 1.0
+k_yield  = 4.0      # mol H2 per mol CH4 (real stoichiometry)
+T_base   = 298.0
+P_base   = 1.0
+
+# ------------------------------------------------------------
+# FIVE PREPARATIONS (water ichor, alkane ichor, vessel volume)
+# ------------------------------------------------------------
+prep = [
+    (2.0, 0.5, 10.0),
+    (4.0, 1.0, 10.0),
+    (6.0, 1.5, 10.0),
+    (8.0, 2.0, 10.0),
+    (10.0, 2.5, 10.0)
+]
+
+# ------------------------------------------------------------
+# DEVIATION FUNCTIONS
+# ------------------------------------------------------------
+def delta_heat(T):
+    return k_heat * (T - T_base)
+
+def delta_press(P):
+    return k_press * (P - P_base)
+
+def hydrogen_yield(n_CH4, n_H2O):
+    limiting = min(n_CH4, n_H2O / 2.0)
+    return k_yield * limiting
+
+# ------------------------------------------------------------
+# RUN A PREPARATION
+# ------------------------------------------------------------
+def run_prep(i, T_reform, T_shift):
+    (n_H2O, n_CH4, V) = prep[i]
+
+    # Heat deviations
+    dH_reform = delta_heat(T_reform)
+    dH_shift  = delta_heat(T_shift)
+
+    # Hydrogen production (real chemistry)
+    n_H2 = hydrogen_yield(n_CH4, n_H2O)
+
+    # Pressure estimate (ideal gas overlay)
+    R = 0.08314
+    T_avg = (T_reform + T_shift) / 2.0
+    P_est = (n_H2 * R * T_avg) / V
+
+    # Pressure deviation
+    dP = delta_press(P_est)
+
+    # Pressure-Chem expansion metric
+    expansion = dP * n_H2
+
+    return {
+        "prep": i+1,
+        "H2_produced_mol": n_H2,
+        "delta_heat_reform": dH_reform,
+        "delta_heat_shift": dH_shift,
+        "pressure_bar": P_est,
+        "delta_pressure": dP,
+        "expansion_factor": expansion
+    }
+
+# ------------------------------------------------------------
+# RUN ALL FIVE PREPARATIONS
+# ------------------------------------------------------------
+results = []
+for i in range(5):
+    results.append(run_prep(i, 1000.0, 700.0))
+
+# 'results' now contains all hydrogen + deviation data.
