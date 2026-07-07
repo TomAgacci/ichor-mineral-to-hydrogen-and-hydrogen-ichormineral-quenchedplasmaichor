@@ -1,0 +1,104 @@
+# ============================================================
+# PUMPABLE FUEL FROM PLASMA HYDROGEN (NON-FICTION)
+# Plasma → Quench → Neutral H2 → Liquid Fuel
+# ============================================================
+
+# ------------------------------------------------------------
+# 0. Plasma cannot be pumpable or neutral
+# ------------------------------------------------------------
+# Plasma = ionized gas, hot, low-density, confined.
+# Pumpable = neutral fluid (gas or liquid).
+# Therefore:
+#   "pumpable neutral plasma" does not exist.
+
+PumpableNeutralPlasma = None  # physically impossible
+
+
+# ------------------------------------------------------------
+# 1. Quench plasma → neutral hydrogen (pumpable)
+# ------------------------------------------------------------
+# 2H+ + 2e- → H2   (real recombination)
+# After quench, hydrogen is neutral and can be pumped.
+
+QuenchedHydrogen = {
+    "state": "neutral H2",
+    "pumpable": True,
+    "is_plasma": False,
+    "notes": "Produced by quenching ionized hydrogen."
+}
+
+
+# ------------------------------------------------------------
+# 2. Pumpable hydrogen fuel (cryogenic)
+# ------------------------------------------------------------
+# Liquid hydrogen (LH2) is the ONLY pumpable hydrogen fluid.
+
+LH2 = {
+    "state": "liquid hydrogen",
+    "boiling_point_K": 20.28,
+    "density_g_per_cm3": 0.0708,
+    "pumpable": True,
+    "is_plasma": False
+}
+
+
+# ------------------------------------------------------------
+# 3. Pumpable liquid fuels made FROM quenched hydrogen
+# ------------------------------------------------------------
+# These are REAL balanced equations.
+
+# Methanol (CH3OH)
+# CO2 + 3H2 → CH3OH + H2O
+Methanol = {
+    "equation": "CO2 + 3H2 -> CH3OH + H2O",
+    "pumpable": True,
+    "state": "liquid fuel"
+}
+
+# Fischer–Tropsch diesel (example: C12H26)
+# 12CO + 25H2 → C12H26 + 12H2O
+DieselRangeFuel = {
+    "equation": "12CO + 25H2 -> C12H26 + 12H2O",
+    "pumpable": True,
+    "state": "liquid hydrocarbon"
+}
+
+# Ammonia (NH3) — liquid under pressure
+# N2 + 3H2 → 2NH3
+AmmoniaFuel = {
+    "equation": "N2 + 3H2 -> 2NH3",
+    "pumpable": True,
+    "state": "liquid under pressure"
+}
+
+# Formic acid (HCOOH)
+# CO2 + H2 → HCOOH
+FormicAcidFuel = {
+    "equation": "CO2 + H2 -> HCOOH",
+    "pumpable": True,
+    "state": "liquid hydrogen carrier"
+}
+
+# Dimethyl ether (DME)
+# 2CH3OH → CH3OCH3 + H2O
+DME = {
+    "equation": "2CH3OH -> CH3OCH3 + H2O",
+    "pumpable": True,
+    "state": "liquid fuel"
+}
+
+
+# ------------------------------------------------------------
+# SUMMARY (REAL PHYSICS + REAL CHEMISTRY)
+# ------------------------------------------------------------
+Summary = {
+    "pumpable_neutral_plasma": "does not exist",
+    "pumpable_after_quench": ["H2 gas", "LH2 liquid"],
+    "pumpable_liquid_fuels_from_H2": [
+        "Methanol",
+        "Diesel-range hydrocarbons",
+        "Ammonia",
+        "Formic acid",
+        "Dimethyl ether"
+    ]
+}
