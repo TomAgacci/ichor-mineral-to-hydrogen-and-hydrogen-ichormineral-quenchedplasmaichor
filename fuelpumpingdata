@@ -1,0 +1,103 @@
+# ============================================================
+# EXISTING REAL-WORLD DATA ON "STABLE PUMPABLE NEUTRAL PLASMA"
+# ============================================================
+# Key fact:
+#   A plasma cannot be both neutral AND pumpable.
+#   If it is neutral and pumpable → it is NOT plasma anymore.
+#   If it is plasma → it is ionized, hot, and NOT pumpable.
+
+# ------------------------------------------------------------
+# 1. TRUE PUMPABLE NEUTRAL HYDROGEN (NOT PLASMA)
+# ------------------------------------------------------------
+# Liquid hydrogen (LH2):
+#   Boiling point:        20.28 K at 1 atm
+#   Density (liquid):     0.0708 g/cm^3
+#   Pumpable:             Yes (cryogenic pumps)
+#   Ionization:           ~0 (neutral)
+#   Plasma state:         No
+
+LH2 = {
+    "state": "neutral liquid hydrogen",
+    "boiling_point_K": 20.28,
+    "density_g_per_cm3": 0.0708,
+    "pumpable": True,
+    "is_plasma": False
+}
+
+
+# ------------------------------------------------------------
+# 2. WARM DENSE HYDROGEN (WDM)
+# ------------------------------------------------------------
+# Exists at:
+#   Temperature:          3000–20000 K
+#   Pressure:             10–1000 GPa
+#   Ionization:           partial (0.01–0.3)
+#   Stability:            only under confinement
+#   Pumpable:             No
+#   Plasma state:         borderline (partially ionized fluid)
+
+WarmDenseHydrogen = {
+    "temperature_range_K": "3e3 to 2e4",
+    "pressure_range_GPa": "10 to 1000",
+    "ionization_fraction": "0.01 to 0.3",
+    "pumpable": False,
+    "is_plasma": "partially"
+}
+
+
+# ------------------------------------------------------------
+# 3. QUASI-NEUTRAL HYDROGEN PLASMA (REAL PLASMA)
+# ------------------------------------------------------------
+# Exists at:
+#   Temperature:          5000–100000 K
+#   Pressure:             very low (vacuum)
+#   Ionization:           high (0.1–1.0)
+#   Stability:            only in magnetic/electrostatic confinement
+#   Pumpable:             No
+#   Plasma state:         Yes (true plasma)
+
+QuasiNeutralPlasma = {
+    "temperature_range_K": "5e3 to 1e5",
+    "pressure": "low vacuum",
+    "ionization_fraction": "0.1 to 1.0",
+    "pumpable": False,
+    "is_plasma": True
+}
+
+
+# ------------------------------------------------------------
+# 4. METALLIC HYDROGEN (THEORETICAL / EXTREME)
+# ------------------------------------------------------------
+# Exists at:
+#   Pressure:             >400 GPa
+#   Temperature:          0–3000 K
+#   Ionization:           electron-degenerate
+#   Stability:            not stable at ambient conditions
+#   Pumpable:             No
+#   Plasma state:         No (quantum fluid)
+
+MetallicHydrogen = {
+    "pressure_GPa": ">400",
+    "temperature_K": "0 to 3000",
+    "pumpable": False,
+    "is_plasma": False
+}
+
+
+# ------------------------------------------------------------
+# SUMMARY
+# ------------------------------------------------------------
+# There is NO known state of matter that is:
+#   • stable
+#   • neutral
+#   • plasma
+#   • pumpable
+#
+# The closest real-world pumpable hydrogen is:
+#   → liquid hydrogen (neutral, NOT plasma)
+#
+# The closest real-world plasma is:
+#   → quasi-neutral hydrogen plasma (NOT pumpable)
+#
+# The closest real-world dense fluid is:
+#   → warm dense hydrogen (partially ionized, NOT pumpable)
