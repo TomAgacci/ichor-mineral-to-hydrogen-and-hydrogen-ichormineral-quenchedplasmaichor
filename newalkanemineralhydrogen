@@ -1,0 +1,132 @@
+# ============================================================
+# NON-FICTION HYDROGEN PRODUCTION
+# Flame-powered (alkane combustion), no electricity
+# ============================================================
+
+import math
+
+# ------------------------------------------------------------
+# 0. REAL CHEMISTRY CONSTANTS (APPROXIMATE ENTHALPIES, kJ/mol)
+# ------------------------------------------------------------
+# CH4 combustion:      CH4 + 2 O2 → CO2 + 2 H2O      ΔH ≈ -802 kJ/mol
+# Steam reforming:     CH4 + H2O → CO + 3 H2         ΔH ≈ +206 kJ/mol
+# Water–gas shift:     CO + H2O → CO2 + H2           ΔH ≈ -41 kJ/mol
+
+DELTA_H_COMBUST_CH4   = -802.0   # kJ/mol (exothermic)
+DELTA_H_REFORM_CH4    = +206.0   # kJ/mol (endothermic)
+DELTA_H_SHIFT_CO      = -41.0    # kJ/mol (exothermic)
+
+# ------------------------------------------------------------
+# 1. HYDROGEN YIELD (STEAM REFORMING + WATER–GAS SHIFT)
+# ------------------------------------------------------------
+def hydrogen_yield(n_CH4_reform: float, n_H2O: float) -> dict:
+    """
+    Real stoichiometry:
+      Step 1: CH4 + H2O → CO + 3 H2
+      Step 2: CO + H2O → CO2 + H2
+      Overall: CH4 + 2 H2O → CO2 + 4 H2
+    """
+    # Step 1: steam reforming (limited by CH4 and H2O)
+    limiting_step1 = min(n_CH4_reform, n_H2O)
+    H2_step1 = 3.0 * limiting_step1
+    CO_step1 = limiting_step1
+
+    # Remaining water for shift
+    n_H2O_remaining = n_H2O - limiting_step1
+    if n_H2O_remaining < 0:
+        n_H2O_remaining = 0.0
+
+    # Step 2: water–gas shift
+    limiting_step2 = min(CO_step1, n_H2O_remaining)
+    H2_step2 = limiting_step2
+    CO2_step2 = limiting_step2
+
+    H2_total = H2_step1 + H2_step2
+
+    return {
+        "H2_step1_mol": H2_step1,
+        "H2_step2_mol": H2_step2,
+        "H2_total_mol": H2_total,
+        "CO_mol": CO_step1 - limiting_step2,
+        "CO2_mol": CO2_step2
+    }
+
+# ------------------------------------------------------------
+# 2. FLAME-POWERED HEAT SUPPLY (ALKANE COMBUSTION)
+# ------------------------------------------------------------
+def flame_heat_from_alkane(n_CH4_flame: float) -> float:
+    """
+    Heat released by burning CH4 in a flame (kJ).
+    """
+    return n_CH4_flame * abs(DELTA_H_COMBUST_CH4)
+
+def heat_required_for_reforming(n_CH4_reform: float, n_CO_for_shift: float) -> float:
+    """
+    Heat required for steam reforming (endothermic) and
+    heat released/required for water–gas shift.
+    """
+    # Reforming is endothermic: +206 kJ/mol CH4
+    Q_reform = n_CH4_reform * DELTA_H_REFORM_CH4
+
+    # Shift is mildly exothermic: -41 kJ/mol CO
+    Q_shift = n_CO_for_shift * DELTA_H_SHIFT_CO
+
+    # Net heat (kJ): positive means heat required, negative means net release
+    Q_net = Q_reform + Q_shift
+    return Q_net
+
+# ------------------------------------------------------------
+# 3. FULL FLAME-POWERED HYDROGEN PRODUCTION (NO ELECTRICITY)
+# ------------------------------------------------------------
+def flame_powered_hydrogen(
+    n_CH4_flame: float,   # mol CH4 burned in flame
+    n_CH4_reform: float,  # mol CH4 sent to reformer
+    n_H2O: float          # mol H2O (steam)
+) -> dict:
+    """
+    Uses CH4 combustion as the ONLY heat source.
+    No electricity. All hydrogen comes from CH4 + H2O.
+    """
+    # Step 1: heat from flame
+    Q_flame = flame_heat_from_alkane(n_CH4_flame)  # kJ
+
+    # Step 2: hydrogen yield from reforming + shift
+    yield_data = hydrogen_yield(n_CH4_reform, n_H2O)
+
+    # Heat required for chemistry
+    Q_required = heat_required_for_reforming(
+        n_CH4_reform,
+        n_CO_for_shift=yield_data["CO_mol"] + yield_data["CO2_mol"]  # approximate CO processed
+    )
+
+    # Check heat balance
+    Q_surplus = Q_flame - Q_required
+
+    return {
+        "CH4_flame_mol": n_CH4_flame,
+        "CH4_reform_mol": n_CH4_reform,
+        "H2O_mol": n_H2O,
+        "H2_total_mol": yield_data["H2_total_mol"],
+        "heat_from_flame_kJ": Q_flame,
+        "heat_required_kJ": Q_required,
+        "heat_surplus_kJ": Q_surplus
+    }
+
+# ------------------------------------------------------------
+# 4. EXAMPLE RUN — PURE FLAME-POWERED HYDROGEN
+# ------------------------------------------------------------
+if __name__ == "__main__":
+    # Example: some CH4 burned for heat, some CH4 reformed
+    n_CH4_flame  = 2.0   # mol CH4 burned in flame
+    n_CH4_reform = 1.5   # mol CH4 sent to reformer
+    n_H2O        = 6.0   # mol water (steam)
+
+    result = flame_powered_hydrogen(n_CH4_flame, n_CH4_reform, n_H2O)
+
+    print("CH4 burned in flame (mol):", result["CH4_flame_mol"])
+    print("CH4 reformed (mol):", result["CH4_reform_mol"])
+    print("H2O feed (mol):", result["H2O_mol"])
+    print("Total H2 produced (mol):", result["H2_total_mol"])
+    print("Heat from flame (kJ):", result["heat_from_flame_kJ"])
+    print("Heat required for chemistry (kJ):", result["heat_required_kJ"])
+    print("Heat surplus (kJ):", result["heat_surplus_kJ"])
