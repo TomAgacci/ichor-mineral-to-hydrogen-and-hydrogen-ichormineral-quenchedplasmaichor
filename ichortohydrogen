@@ -1,0 +1,25 @@
+# ICHOR → HYDROGEN CONVERSION (Pressure‑Chem Mid‑Regime)
+
+# 1. Define input ichor
+I_wat = volume_of_water_ichor   # hydrogen-bearing ichor
+
+# 2. Set mid‑regime heat band
+T = target_temperature
+if T < T_split:
+    raise Exception("Heat too low: no hydrogen release")
+if T >= T_plasma:
+    raise Exception("Heat too high: plasma formation risk")
+
+# 3. Compute deviation from heat
+delta_heat = k_heat * (T - T_base)
+
+# 4. Check deviation threshold for hydrogen liberation
+if delta_heat >= delta_split and delta_heat < delta_plasma:
+    # Mid‑regime: safe hydrogen conversion
+    H2_ichor = yield_factor * I_wat
+    D_ichor = I_wat - H2_ichor
+else:
+    raise Exception("Deviation outside hydrogen-production band")
+
+# 5. Output hydrogen‑ichor
+return H2_ichor
