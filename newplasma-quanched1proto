@@ -1,0 +1,129 @@
+# ============================================================
+# NON-FICTION PREPARATION STEPS
+# Silicon Dioxide + Alkane + Water → Hydrogen → Plasma Hydrogen
+# ============================================================
+
+# ------------------------------------------------------------
+# STEP 1 — PREPARE SILICON DIOXIDE (SiO₂) MINERAL SUPPORT
+# ------------------------------------------------------------
+# SiO₂ is inert. It does NOT produce hydrogen.
+# Its real role is:
+#   • thermal stability
+#   • catalyst support
+#   • reactor packing
+
+1. Crush and wash SiO₂ mineral.
+2. Dry at 120–200 °C to remove moisture.
+3. Load SiO₂ into reactor as packing/support.
+4. Optionally acid-rinse (HCl) and base-neutralize (NaOH) to clean surface.
+5. Heat SiO₂ bed to operating temperature (600–1000 °C).
+
+# ------------------------------------------------------------
+# STEP 2 — PREPARE ALKANE FEED (CH₄)
+# ------------------------------------------------------------
+# CH₄ is the REAL hydrogen source.
+# Stoichiometry:
+#   CH4 + 2 H2O → CO2 + 4 H2
+
+1. Measure alkane (CH₄) feed in moles.
+2. Ensure dryness and purity (remove sulfur compounds).
+3. Preheat CH₄ to 300–500 °C before entering reformer.
+
+# ------------------------------------------------------------
+# STEP 3 — PREPARE WATER (H₂O) FOR STEAM REFORMING
+# ------------------------------------------------------------
+# Water supplies hydrogen and oxygen.
+# Must be converted to steam.
+
+1. Measure H₂O in moles.
+2. Convert water to steam at 300–500 °C.
+3. Maintain steam pressure (5–30 bar depending on reactor design).
+
+# ------------------------------------------------------------
+# STEP 4 — COMBINE CH₄ + STEAM OVER SiO₂ SUPPORT
+# ------------------------------------------------------------
+# Real steam reforming:
+#   CH4 + H2O → CO + 3 H2
+# Real water–gas shift:
+#   CO + H2O → CO2 + H2
+
+1. Feed CH₄ and steam into SiO₂-packed reactor.
+2. Maintain reforming temperature (800–1000 °C).
+3. Maintain pressure (5–30 bar).
+4. Reaction produces:
+     • CO
+     • H₂ (hydrogen gas)
+5. Shift reaction converts CO → CO₂ + more H₂.
+
+# ------------------------------------------------------------
+# STEP 5 — COLLECT HYDROGEN GAS (H₂)
+# ------------------------------------------------------------
+# This is REAL hydrogen, not symbolic.
+
+1. Cool gas mixture.
+2. Remove CO₂ (amine scrubber or PSA).
+3. Collect purified H₂ gas.
+4. Measure total H₂ moles:
+     H2_total = 4 * min(CH4, H2O/2)
+
+# ------------------------------------------------------------
+# STEP 6 — HEAT HYDROGEN TO PLASMA TEMPERATURE
+# ------------------------------------------------------------
+# Real plasma physics:
+# Hydrogen ionizes at extremely high temperatures.
+# Ionization fraction:
+#   f_ion = exp( -E_ion / (k_B * T) )
+# where E_ion = 13.6 eV
+
+1. Compress hydrogen into plasma chamber.
+2. Heat hydrogen to plasma temperature:
+     T_plasma ≥ 10,000 K
+3. Compute ionization fraction:
+     f_ion = exp( -13.6 eV / (k_B * T_plasma) )
+4. Split hydrogen:
+     • Neutral H₂ = H2_total * (1 - f_ion)
+     • Ionized H⁺ = H2_total * f_ion
+
+# ------------------------------------------------------------
+# STEP 7 — COMPUTE REAL PRESSURE AT EACH STAGE
+# ------------------------------------------------------------
+# Ideal gas law:
+#   P = n * R * T / V
+
+1. Reforming pressure:
+     P_reform = n_H2 * R * T_reform / V
+2. Plasma pressure:
+     P_plasma = n_H2 * R * T_plasma / V
+
+# ------------------------------------------------------------
+# STEP 8 — OUTPUT FINAL NON-FICTION PLASMA HYDROGEN PACKET
+# ------------------------------------------------------------
+# Contains:
+#   • total hydrogen produced
+#   • neutral hydrogen fraction
+#   • ionized hydrogen fraction
+#   • reforming pressure
+#   • plasma pressure
+
+return {
+    "SiO2_role": "inert_support",
+    "H2_total_mol": n_H2,
+    "neutral_H2_mol": n_H2 * (1 - f_ion),
+    "ionized_H_mol": n_H2 * f_ion,
+    "pressure_reform_bar": P_reform,
+    "pressure_plasma_bar": P_plasma
+}
+
+# ------------------------------------------------------------
+# STEP 9 — REAL QUENCHING (PLASMA → NEUTRAL HYDROGEN)
+# ------------------------------------------------------------
+# Quenching is rapid cooling of ionized hydrogen.
+# Real physics: ions + electrons recombine when T drops below ~5000 K.
+
+1. Take plasma hydrogen at T_plasma ≥ 10,000 K.
+2. Expand or cool the plasma rapidly (radiative or convective cooling).
+3. Drop temperature below recombination threshold (~3000–5000 K).
+4. Ionized hydrogen (H⁺ + e⁻) recombines into neutral H₂.
+5. Measure final neutral hydrogen fraction:
+     H2_quenched = H2_total * (1 - f_ion_after_quench)
+6. Collect neutral hydrogen gas for downstream use.
