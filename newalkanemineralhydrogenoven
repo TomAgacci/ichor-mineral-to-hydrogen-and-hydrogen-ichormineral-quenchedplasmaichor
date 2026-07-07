@@ -1,0 +1,140 @@
+# ============================================================
+# NON‑FICTION HYDROGEN PREPARATION USING:
+#   • SILICON DIOXIDE (SiO₂) — inert mineral support
+#   • ALKANE (e.g., CH₄) — hydrogen source
+#   • WATER (H₂O) — hydrogen + oxygen source
+#   • ACIDS / BASES — real cleaning & conditioning only
+#   • REAL STEAM REFORMING + WATER–GAS SHIFT CHEMISTRY
+# ============================================================
+
+# ------------------------------------------------------------
+# 1. PREPARE SILICON DIOXIDE MINERAL SUPPORT (NON‑FICTION)
+# ------------------------------------------------------------
+# SiO₂ does NOT produce hydrogen. It is used as:
+#   • catalyst support
+#   • thermal stabilizer
+#   • reactor packing material
+
+def prepare_silica(mass_SiO2_grams: float):
+    """
+    Real preparation of SiO₂ mineral for catalytic support.
+    """
+    return {
+        "SiO2_mass_g": mass_SiO2_grams,
+        "role": "inert_support",
+        "surface_condition": "cleaned_and_dried"
+    }
+
+
+# ------------------------------------------------------------
+# 2. CLEAN / CONDITION WITH ACIDS & BASES (NON‑FICTION)
+# ------------------------------------------------------------
+# Acids/bases DO NOT create hydrogen.
+# They ONLY:
+#   • remove metal oxides
+#   • adjust pH
+#   • clean silica surface
+
+def acid_base_conditioning(silica_packet, acid_type="HCl", base_type="NaOH"):
+    silica_packet["acid_clean"] = acid_type
+    silica_packet["base_rinse"] = base_type
+    silica_packet["surface_condition"] = "activated_support"
+    return silica_packet
+
+
+# ------------------------------------------------------------
+# 3. PREPARE ALKANE + WATER FEED (REAL HYDROGEN SOURCES)
+# ------------------------------------------------------------
+# Hydrogen comes from:
+#   • CH₄ (alkane)
+#   • H₂O (steam)
+# via real steam reforming.
+
+def prepare_feed(n_CH4: float, n_H2O: float):
+    return {
+        "CH4_mol": n_CH4,
+        "H2O_mol": n_H2O
+    }
+
+
+# ------------------------------------------------------------
+# 4. REAL HYDROGEN CONVERSION (STEAM REFORMING)
+# ------------------------------------------------------------
+# CH4 + H2O → CO + 3 H2
+
+def steam_reforming(n_CH4: float, n_H2O: float):
+    limiting = min(n_CH4, n_H2O)  # 1:1 for first step
+    H2_prod = 3.0 * limiting
+    CO_prod = limiting
+    return H2_prod, CO_prod
+
+
+# ------------------------------------------------------------
+# 5. REAL WATER–GAS SHIFT REACTION
+# ------------------------------------------------------------
+# CO + H2O → CO2 + H2
+
+def water_gas_shift(CO_mol: float, n_H2O_remaining: float):
+    limiting = min(CO_mol, n_H2O_remaining)
+    H2_additional = limiting
+    CO2_prod = limiting
+    return H2_additional, CO2_prod
+
+
+# ------------------------------------------------------------
+# 6. FULL NON‑FICTION HYDROGEN PRODUCTION PIPELINE
+# ------------------------------------------------------------
+def hydrogen_from_silica_alkane_water(
+    mass_SiO2_g: float,
+    n_CH4: float,
+    n_H2O: float
+):
+    # Step 1: prepare silica
+    silica = prepare_silica(mass_SiO2_g)
+
+    # Step 2: acid/base conditioning
+    silica = acid_base_conditioning(silica)
+
+    # Step 3: prepare feed
+    feed = prepare_feed(n_CH4, n_H2O)
+
+    # Step 4: steam reforming
+    H2_step1, CO_step1 = steam_reforming(feed["CH4_mol"], feed["H2O_mol"])
+
+    # Step 5: water–gas shift
+    H2_step2, CO2_step2 = water_gas_shift(CO_step1, feed["H2O_mol"] - CO_step1)
+
+    # Total hydrogen
+    H2_total = H2_step1 + H2_step2
+
+    return {
+        "SiO2_support": silica,
+        "CH4_input_mol": n_CH4,
+        "H2O_input_mol": n_H2O,
+        "H2_from_reforming_mol": H2_step1,
+        "H2_from_shift_mol": H2_step2,
+        "H2_total_mol": H2_total,
+        "CO_produced_mol": CO_step1,
+        "CO2_produced_mol": CO2_step2
+    }
+
+
+# ------------------------------------------------------------
+# 7. EXAMPLE RUN — NON‑FICTION, NO SYMBOLISM
+# ------------------------------------------------------------
+if __name__ == "__main__":
+    result = hydrogen_from_silica_alkane_water(
+        mass_SiO2_g = 250.0,   # grams of silica mineral
+        n_CH4       = 1.5,     # mol alkane
+        n_H2O       = 6.0      # mol water
+    )
+
+    print(result)
+
+# ============================================================
+# This is 100% NON‑FICTION:
+#   • SiO₂ = inert mineral support
+#   • CH₄ + H₂O = real hydrogen source
+#   • Acids/bases = real cleaning/pH conditioning
+#   • Steam reforming + water–gas shift = real hydrogen chemistry
+# ============================================================
