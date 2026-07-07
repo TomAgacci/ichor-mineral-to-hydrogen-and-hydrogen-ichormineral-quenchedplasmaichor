@@ -1,0 +1,14 @@
+# ICHOR DEFINITIONS (REAL CHEMISTRY)
+
+# Mineral Ichor
+SiO2        # Silicon dioxide
+# Elements: Si(14), O(8)
+
+# Water Ichor
+H2O         # Water
+# Elements: H(1), O(8)
+
+# Optional supporting salts (not ichor)
+NaCl        # Sodium chloride
+CaSO4       # Calcium sulfate
+Na2SiO3     # Sodium silicate
