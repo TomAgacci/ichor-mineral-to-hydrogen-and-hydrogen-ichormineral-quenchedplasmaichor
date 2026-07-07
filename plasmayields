@@ -1,0 +1,46 @@
+# ============================================================
+# NON-FICTION PLASMA YIELD CALCULATION
+# Ionized vs Neutral Hydrogen at Plasma Temperature
+# ============================================================
+
+import math
+
+# Ionization constants (real physical values)
+E_ION_EV = 13.6
+E_ION_J  = E_ION_EV * 1.602e-19
+K_B      = 1.381e-23
+
+def ionization_fraction(T_plasma):
+    """
+    Real Boltzmann-based ionization fraction:
+        f_ion = exp( -E_ion / (k_B * T_plasma) )
+    """
+    if T_plasma <= 0:
+        return 0.0
+    exponent = -E_ION_J / (K_B * T_plasma)
+    return max(0.0, min(1.0, math.exp(exponent)))
+
+def plasma_yields(n_H2_total, T_plasma):
+    """
+    Returns ionized and neutral hydrogen yields in moles.
+    """
+    f_ion = ionization_fraction(T_plasma)
+
+    n_ionized = n_H2_total * f_ion
+    n_neutral = n_H2_total * (1.0 - f_ion)
+
+    return {
+        "T_plasma_K": T_plasma,
+        "ionization_fraction": f_ion,
+        "ionized_H_mol": n_ionized,
+        "neutral_H2_mol": n_neutral,
+        "total_input_H2_mol": n_H2_total
+    }
+
+# Example usage:
+if __name__ == "__main__":
+    result = plasma_yields(
+        n_H2_total = 4.0,     # total hydrogen moles entering plasma
+        T_plasma   = 12000.0  # plasma temperature in Kelvin
+    )
+    print(result)
